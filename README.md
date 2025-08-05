@@ -1,4 +1,3 @@
-
 # expo-http-server
 
 [![npm](https://img.shields.io/npm/v/expo-http-server?style=for-the-badge)](https://www.npmjs.com/package/expo-http-server)
@@ -14,14 +13,58 @@ iOS: [Criollo](https://github.com/thecatalinstan/Criollo)
 Android: [AndroidServer](https://github.com/fengzhizi715/AndroidServer)
 Web: **Not implemented**
 
+# ⚠️ Important Notice
+
+This is a **personal-maintained version** of the `expo-http-server` package. For the **official version**, please visit [https://github.com/simonsturge/expo-http-server](https://github.com/simonsturge/expo-http-server).
+
+---
+
+
 ## Install
 
+### Use pnpm workspace (Recommended for development environment)
+
+1. Clone the project locally:
+
 ```shell
-npx expo install expo-http-server
+git clone https://github.com/Raven-tu/expo-http-server.git
+cd expo-http-server
+```
+
+2. Install dependencies:
+
+```shell
+pnpm install
+```
+
+3. Configure pnpm workspace in your main project by creating a `pnpm-workspace.yaml` file in the root directory:
+
+```yaml
+packages:
+  - 'packages/*'
+  - 'expo-http-server'  # Point to the cloned expo-http-server directory
+```
+
+4. Add the dependency in your main project's `package.json`:
+
+```json
+{
+  "dependencies": {
+    "expo-http-server": "workspace:*"
+  }
+}
+```
+
+5. Run pnpm install to install workspace dependencies:
+
+```shell
+pnpm install
 ```
 
 ## Example
+
 ```tsx
+
 import * as server from "expo-http-server";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
@@ -97,6 +140,7 @@ export default function App() {
 ```
 
 ## Running in the background
+
 **iOS**: When the app is backgrounded the server will inevitably get paused. There is no getting around this. expo-http-server will start a  [background task](https://developer.apple.com/documentation/uikit/uiapplication/1623031-beginbackgroundtask) that should provide a bit more background time, but this will only be ~25 seconds, which could be lowered by Apple in the future. expo-http-server will automatically pause the server when the time runs out, and resume it when the app is resumed.
 
 **Android**: The server can be ran continuously in the background using a foreground service, e.g. a persistent notification. [Notifee](https://notifee.app/react-native/docs/android/foreground-service#building-a-long-lived-task) can be used to do this. Take a look at the example project for how to set this up.
@@ -108,7 +152,9 @@ Send a request to the server in a browser `browser` or `curl`:
 ```shell
 curl http://IP_OF_DEVICE:MY_PORT
 ```
+
 For example:
+
 ```shell
 curl http://192.168.1.109:3000
 ```
