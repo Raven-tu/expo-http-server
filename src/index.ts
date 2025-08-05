@@ -43,27 +43,56 @@ export interface Callback {
 
 export const start = () => {
   emitter.addListener<RequestEvent>("onRequest", async (event) => {
-    const responseHandler = requestCallbacks.find((c) => c.uuid === event.uuid);
-    if (!responseHandler) {
+    try {
+      const responseHandler = requestCallbacks.find((c) => c.uuid === event.uuid);
+      if (!responseHandler) {
+        ExpoHttpServerModule.respond(
+          event.uuid,
+          404,
+          "Not Found",
+          "application/json",
+          {},
+          JSON.stringify({ error: "Handler not found" }),
+        );
+        return;
+      }
+      
+      const response = await responseHandler.callback(event);
+      
+      // Validate response parameters
+      const statusCode = response.statusCode || 200;
+      if (statusCode < 100 || statusCode > 599) {
+        console.warn(`ExpoHttpServer: Invalid status code ${statusCode}, using 500`);
+        ExpoHttpServerModule.respond(
+          event.uuid,
+          500,
+          "Internal Server Error",
+          "application/json",
+          {},
+          JSON.stringify({ error: "Invalid status code" }),
+        );
+        return;
+      }
+      
       ExpoHttpServerModule.respond(
         event.uuid,
-        404,
-        "Not Found",
+        statusCode,
+        response.statusDescription || "OK",
+        response.contentType || "application/json",
+        response.headers || {},
+        response.body || "{}",
+      );
+    } catch (error) {
+      console.error("ExpoHttpServer: Error handling request:", error);
+      ExpoHttpServerModule.respond(
+        event.uuid,
+        500,
+        "Internal Server Error",
         "application/json",
         {},
-        JSON.stringify({ error: "Handler not found" }),
+        JSON.stringify({ error: "Internal server error" }),
       );
-      return;
     }
-    const response = await responseHandler.callback(event);
-    ExpoHttpServerModule.respond(
-      event.uuid,
-      response.statusCode || 200,
-      response.statusDescription || "OK",
-      response.contentType || "application/json",
-      response.headers || {},
-      response.body || "{}",
-    );
   });
   ExpoHttpServerModule.start();
 };
@@ -87,6 +116,18 @@ export const setup = (
   port: number,
   onStatusUpdate?: (event: StatusEvent) => void,
 ) => {
+  // Validate port number
+  if (port <= 0 || port > 65535) {
+    console.error(`ExpoHttpServer: Invalid port number ${port}. Port must be between 1 and 65535.`);
+    if (onStatusUpdate) {
+      onStatusUpdate({
+        status: "ERROR",
+        message: "Invalid port number. Port must be between 1 and 65535",
+      });
+    }
+    return;
+  }
+  
   if (onStatusUpdate) {
     emitter.addListener<StatusEvent>("onStatusUpdate", async (event) => {
       onStatusUpdate(event);
