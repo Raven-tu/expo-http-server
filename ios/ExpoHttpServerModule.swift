@@ -110,8 +110,8 @@ public class ExpoHttpServerModule: Module {
                                 "method": req.method.toString(),
                                 "path": path,
                                 "body": bodyString,
-                                "headersJson": req.allHTTPHeaderFields?.jsonString ?? "{}",
-                                "paramsJson": req.query?.jsonString ?? "{}",
+                                "headersJson": req.allHTTPHeaderFields.jsonString,
+                                "paramsJson": req.query.jsonString,
                                 "cookiesJson": req.cookies?.jsonString ?? "{}",
                             ])
                     }
