@@ -2,7 +2,12 @@ import { EventEmitter } from "expo-modules-core";
 
 import ExpoHttpServerModule from "./ExpoHttpServerModule";
 
-const emitter = new EventEmitter(ExpoHttpServerModule);
+type ExpoHttpServerEvents = {
+  onRequest: (event: RequestEvent) => void | Promise<void>;
+  onStatusUpdate: (event: StatusEvent) => void;
+};
+
+const emitter = new EventEmitter<ExpoHttpServerEvents>(ExpoHttpServerModule);
 const requestCallbacks: Callback[] = [];
 
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "OPTIONS";
@@ -42,7 +47,7 @@ export interface Callback {
 }
 
 export const start = () => {
-  emitter.addListener<RequestEvent>("onRequest", async (event) => {
+  emitter.addListener("onRequest", async (event: RequestEvent) => {
     try {
       const responseHandler = requestCallbacks.find((c) => c.uuid === event.uuid);
       if (!responseHandler) {
@@ -129,7 +134,7 @@ export const setup = (
   }
   
   if (onStatusUpdate) {
-    emitter.addListener<StatusEvent>("onStatusUpdate", async (event) => {
+    emitter.addListener("onStatusUpdate", (event: StatusEvent) => {
       onStatusUpdate(event);
     });
   }
